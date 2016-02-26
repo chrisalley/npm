@@ -42,9 +42,10 @@ end
 def install_dependencies_then_package(name, version, dependencies)
   version = version.gsub(/[\^\~]/, '')
   dependencies.each do |dep_name, dep_version|
+    dep_version = dep_version.gsub(/[\^\~]/, '')
     puts "Getting metadata for dependency #{dep_name} #{dep_version}..."
     json_string = ''
-    open("http://registry.npmjs.org/#{name}/#{version}") do |f|
+    open("http://registry.npmjs.org/#{dep_name}/#{dep_version}") do |f|
       f.each_line do |line|
         json_string << line
       end
@@ -59,7 +60,7 @@ end
 
 def install_package(name, version)
   puts "Installing #{name} #{version} globally..."
-  `npm install -g #{name} #{version}`
+  `npm install -g #{name}@#{version}`
 end
 
 if ARGV.length == 2 || ARGV.length == 3
