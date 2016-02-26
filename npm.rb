@@ -10,7 +10,6 @@ def install_latest_package(name)
     end
   end
   json = JSON(json_string)
-  puts json["version"]
   if json["version"]
     install_particular_package(name, json["version"])
   else
@@ -19,7 +18,7 @@ def install_latest_package(name)
 end
 
 def install_particular_package(name, version)
-  version = version.gsub(/[\^\~]/, '')
+  version = version.gsub(/[\^\~\<\>\=]/, '')
   puts "Getting metadata for #{name} #{version}..."
   json_string = ''
   open("http://registry.npmjs.org/#{name}/#{version}") do |f|
@@ -40,9 +39,9 @@ def install_particular_package(name, version)
 end
 
 def install_dependencies_then_package(name, version, dependencies)
-  version = version.gsub(/[\^\~]/, '')
+  version = version.gsub(/[\^\~\<\>\=]/, '')
   dependencies.each do |dep_name, dep_version|
-    dep_version = dep_version.gsub(/[\^\~]/, '')
+    dep_version = dep_version.gsub(/[\^\~\<\>\=]/, '')
     puts "Getting metadata for dependency #{dep_name} #{dep_version}..."
     json_string = ''
     open("http://registry.npmjs.org/#{dep_name}/#{dep_version}") do |f|
