@@ -27,10 +27,14 @@ def install_particular_package(name, version)
     end
   end
   json = JSON(json_string)
-  if json["dependencies"]
-    install_dependencies_then_package(name, version, json["dependencies"])
+  if version != ''
+    if json["dependencies"]
+      install_dependencies_then_package(name, version, json["dependencies"])
+    else
+      install_package(name, version)
+    end
   else
-    install_package(name, version)
+    puts "Version not specified."
   end
 end
 
