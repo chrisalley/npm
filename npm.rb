@@ -1,6 +1,11 @@
 require 'open-uri'
 require 'json'
 
+def tidy_version_number(version)
+  version = version.gsub(/[\^\~\<\>\=]/, '')
+  version.gsub(/\s.+/, '')
+end
+
 def install_latest_package(name)
   puts "Getting metadata for the latest version of #{name}..."
   json_string = ''
@@ -18,7 +23,7 @@ def install_latest_package(name)
 end
 
 def install_particular_package(name, version)
-  version = version.gsub(/[\^\~\<\>\=]/, '')
+  version = tidy_version_number(version)
   puts "Getting metadata for #{name} #{version}..."
   json_string = ''
   open("http://registry.npmjs.org/#{name}/#{version}") do |f|
@@ -39,9 +44,9 @@ def install_particular_package(name, version)
 end
 
 def install_dependencies_then_package(name, version, dependencies)
-  version = version.gsub(/[\^\~\<\>\=]/, '')
+  version = tidy_version_number(version)
   dependencies.each do |dep_name, dep_version|
-    dep_version = dep_version.gsub(/[\^\~\<\>\=]/, '')
+    dep_version = tidy_version_number(dep_version)
     puts "Getting metadata for dependency #{dep_name} #{dep_version}..."
     json_string = ''
     open("http://registry.npmjs.org/#{dep_name}/#{dep_version}") do |f|
