@@ -1,72 +1,93 @@
 require 'open-uri'
 require 'json'
 
-def tidy_version_number(version)
-  version = version.gsub(/[\^\~\<\>\=]/, '')
-  version.gsub(/\s.+/, '')
-end
+class Npm
+  def initialize
+    @installed_packages = []
+  end
 
-def install_latest_package(name)
-  puts "Getting metadata for the latest version of #{name}..."
-  json_string = ''
-  open("http://registry.npmjs.org/#{name}/latest") do |f|
-    f.each_line do |line|
-      json_string << line
-    end
+  def tidy_version_number(version)
+    version = version.gsub(/[\^\~\<\>\=]/, '')
+    version.gsub(/\s.+/, '')
   end
-  json = JSON(json_string)
-  if json["version"]
-    install_particular_package(name, json["version"])
-  else
-    puts "Version not found in #{name}'s metadata."
-  end
-end
 
-def install_particular_package(name, version)
-  version = tidy_version_number(version)
-  puts "Getting metadata for #{name} #{version}..."
-  json_string = ''
-  open("http://registry.npmjs.org/#{name}/#{version}") do |f|
-    f.each_line do |line|
-      json_string << line
-    end
-  end
-  json = JSON(json_string)
-  if version != ''
-    if json["dependencies"]
-      install_dependencies_then_package(name, version, json["dependencies"])
-    else
-      install_package(name, version)
-    end
-  else
-    puts "Version not specified."
-  end
-end
-
-def install_dependencies_then_package(name, version, dependencies)
-  version = tidy_version_number(version)
-  dependencies.each do |dep_name, dep_version|
-    dep_version = tidy_version_number(dep_version)
-    puts "Getting metadata for dependency #{dep_name} #{dep_version}..."
+  def install_latest_package(name)
+    puts "Getting metadata for the latest version of #{name}..."
     json_string = ''
-    open("http://registry.npmjs.org/#{dep_name}/#{dep_version}") do |f|
+    open("http://registry.npmjs.org/#{name}/latest") do |f|
       f.each_line do |line|
         json_string << line
       end
     end
     json = JSON(json_string)
-    if json["dependencies"]
-      install_dependencies_then_package(dep_name, dep_version, json["dependencies"])
+    if json["version"]
+      self.install_particular_package(name, json["version"])
+    else
+      puts "Version not found in #{name}'s metadata."
     end
   end
-  install_package(name, version)
+
+  def install_particular_package(name, version)
+    version = tidy_version_number(version)
+    puts "Getting metadata for #{name} #{version}..."
+    json_string = ''
+    open("http://registry.npmjs.org/#{name}/#{version}") do |f|
+      f.each_line do |line|
+        json_string << line
+      end
+    end
+    json = JSON(json_string)
+    if version != ''
+      if json["dependencies"]
+        self.install_dependencies_then_package(name, version,
+          json["dependencies"])
+      else
+        self.install_package(name, version)
+      end
+    else
+      puts "Version not specified."
+    end
+  end
+
+  def install_dependencies_then_package(name, version, dependencies)
+    version = tidy_version_number(version)
+    puts "Installing dependencies for #{name} #{version}..."
+    dependencies.each do |dep_name, dep_version|
+      dep_version = tidy_version_number(dep_version)
+
+      dep_already_installed = false
+      @installed_packages.each do |i_name, i_version|
+        if dep_name == i_name && dep_version == i_version
+          dep_already_installed = true
+        end
+      end
+
+      unless dep_already_installed
+        puts "Getting metadata for dependency #{dep_name} #{dep_version}..."
+        json_string = ''
+        open("http://registry.npmjs.org/#{dep_name}/#{dep_version}") do |f|
+          f.each_line do |line|
+            json_string << line
+          end
+        end
+        json = JSON(json_string)
+        if json["dependencies"]
+          self.install_dependencies_then_package(dep_name, dep_version,
+            json["dependencies"])
+        end
+      end
+    end
+    self.install_package(name, version)
+  end
+
+  def install_package(name, version)
+    puts "Installing #{name} #{version} globally..."
+    `npm install -g #{name}@#{version}`
+    @installed_packages << [name, version]
+  end
 end
 
-def install_package(name, version)
-  puts "Installing #{name} #{version} globally..."
-  `npm install -g #{name}@#{version}`
-end
-
+npm = Npm.new
 if ARGV.length == 2 || ARGV.length == 3
   argument_number = 0
   install = false
@@ -80,12 +101,12 @@ if ARGV.length == 2 || ARGV.length == 3
     when 2
       package_name = argument
       if install && ARGV.length == 2
-        install_latest_package(package_name)
+        npm.install_latest_package(package_name)
       end
     when 3
       package_version = argument
       if install && ARGV.length == 3
-        install_particular_package(package_name, package_version)
+        npm.install_particular_package(package_name, package_version)
       end
     end
   end
