@@ -15,16 +15,22 @@ class Npm
   def install_latest_package(name)
     puts "Getting metadata for the latest version of #{name}..."
     json_string = ''
-    open("http://registry.npmjs.org/#{name}/latest") do |f|
-      f.each_line do |line|
-        json_string << line
+    begin
+      open("http://registry.npmjs.org/#{name}/latest") do |f|
+        f.each_line do |line|
+          json_string << line
+        end
       end
+    rescue
+      puts "Could not get metadata for the latest version of #{name}."
     end
-    json = JSON(json_string)
-    if json["version"]
-      self.install_particular_package(name, json["version"])
-    else
-      puts "Version not found in #{name}'s metadata."
+    unless json_string == ''
+      json = JSON(json_string)
+      if json["version"]
+        self.install_particular_package(name, json["version"])
+      else
+        puts "Version not found in #{name}'s metadata."
+      end
     end
   end
 
@@ -32,21 +38,27 @@ class Npm
     version = tidy_version_number(version)
     puts "Getting metadata for #{name} #{version}..."
     json_string = ''
-    open("http://registry.npmjs.org/#{name}/#{version}") do |f|
-      f.each_line do |line|
-        json_string << line
+    begin
+      open("http://registry.npmjs.org/#{name}/#{version}") do |f|
+        f.each_line do |line|
+          json_string << line
+        end
       end
+    rescue
+      puts "Could not get metadata for #{name} #{version}."
     end
-    json = JSON(json_string)
-    if version != ''
-      if json["dependencies"]
-        self.install_dependencies_then_package(name, version,
-          json["dependencies"])
+    unless json_string == ''
+      json = JSON(json_string)
+      if version != ''
+        if json["dependencies"]
+          self.install_dependencies_then_package(name, version,
+            json["dependencies"])
+        else
+          self.install_package(name, version)
+        end
       else
-        self.install_package(name, version)
+        puts "Version not specified."
       end
-    else
-      puts "Version not specified."
     end
   end
 
@@ -75,15 +87,22 @@ class Npm
         unless self.package_already_installed?(dep_name, dep_version)
           puts "Getting metadata for dependency #{dep_name} #{dep_version}..."
           json_string = ''
-          open("http://registry.npmjs.org/#{dep_name}/#{dep_version}") do |f|
-            f.each_line do |line|
-              json_string << line
+          begin
+            open("http://registry.npmjs.org/#{dep_name}/#{dep_version}") do |f|
+              f.each_line do |line|
+                json_string << line
+              end
             end
+          rescue
+            puts "Could not get metadata for dependency #{dep_name} " +
+              "#{dep_version}."
           end
-          json = JSON(json_string)
-          if json["dependencies"]
-            self.install_dependencies_then_package(dep_name, dep_version,
-              json["dependencies"])
+          unless json_string == ''
+            json = JSON(json_string)
+            if json["dependencies"]
+              self.install_dependencies_then_package(dep_name, dep_version,
+                json["dependencies"])
+            end
           end
         end
       end
