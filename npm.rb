@@ -4,6 +4,7 @@ require 'json'
 class Npm
   def initialize
     @installed_packages = []
+    @discovered_dependencies = []
   end
 
   def tidy_version_number(version)
@@ -49,31 +50,41 @@ class Npm
     end
   end
 
+  def package_already_installed?(name, version)
+    @installed_packages.each do |installed_name, installed_version|
+      return true if name == installed_name && version == installed_version
+    end
+    false
+  end
+
+  def dependency_already_discovered?(name, version)
+    @discovered_dependencies.each do |dependency_name, dependency_version|
+      return true if name == dependency_name && version == dependency_version
+    end
+    false
+  end
+
   def install_dependencies_then_package(name, version, dependencies)
     version = tidy_version_number(version)
     puts "Installing dependencies for #{name} #{version}..."
     dependencies.each do |dep_name, dep_version|
       dep_version = tidy_version_number(dep_version)
+      unless self.dependency_already_discovered?(dep_name, dep_version)
+        @discovered_dependencies << [dep_name, dep_version]
 
-      dep_already_installed = false
-      @installed_packages.each do |i_name, i_version|
-        if dep_name == i_name && dep_version == i_version
-          dep_already_installed = true
-        end
-      end
-
-      unless dep_already_installed
-        puts "Getting metadata for dependency #{dep_name} #{dep_version}..."
-        json_string = ''
-        open("http://registry.npmjs.org/#{dep_name}/#{dep_version}") do |f|
-          f.each_line do |line|
-            json_string << line
+        unless self.package_already_installed?(dep_name, dep_version)
+          puts "Getting metadata for dependency #{dep_name} #{dep_version}..."
+          json_string = ''
+          open("http://registry.npmjs.org/#{dep_name}/#{dep_version}") do |f|
+            f.each_line do |line|
+              json_string << line
+            end
           end
-        end
-        json = JSON(json_string)
-        if json["dependencies"]
-          self.install_dependencies_then_package(dep_name, dep_version,
-            json["dependencies"])
+          json = JSON(json_string)
+          if json["dependencies"]
+            self.install_dependencies_then_package(dep_name, dep_version,
+              json["dependencies"])
+          end
         end
       end
     end
