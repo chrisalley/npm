@@ -118,7 +118,7 @@ class Npm
 end
 
 npm = Npm.new
-if ARGV.length == 2 || ARGV.length == 3
+if ARGV.length == 2
   argument_number = 0
   install = false
   package_name = ''
@@ -130,16 +130,16 @@ if ARGV.length == 2 || ARGV.length == 3
       install = true if argument == 'install'
     when 2
       package_name = argument
-      if install && ARGV.length == 2
-        npm.install_latest_package(package_name)
-      end
-    when 3
-      package_version = argument
-      if install && ARGV.length == 3
-        npm.install_particular_package(package_name, package_version)
+      if install
+        if argument.include? '@'
+          npm.install_particular_package(argument.split('@').first,
+            argument.split('@').last)
+        else
+          npm.install_latest_package(argument)
+        end
       end
     end
   end
 else
-  puts "Wrong number of arguments. Expected 2 or 3."
+  puts "Wrong number of arguments. Expected 2."
 end
