@@ -1,3 +1,11 @@
-Install npm package dependencies individually via Ruby. E.g.
+NPM Install
+===========
 
-`ruby npm.rb install ember-cli@2.4.1`
+Install Node.js package dependencies one at a time via Ruby.
+
+Examples
+--------
+
+`ruby npm_install.rb ember-cli`
+
+`ruby npm_install.rb ember-cli@2.4.1`

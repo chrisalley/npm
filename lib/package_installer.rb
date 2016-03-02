@@ -1,7 +1,7 @@
 require 'open-uri'
 require 'json'
 
-class Npm
+class PackageInstaller
   def initialize
     @installed_packages = []
     @discovered_dependencies = []
@@ -115,31 +115,4 @@ class Npm
     `npm install -g #{name}@#{version}`
     @installed_packages << [name, version]
   end
-end
-
-npm = Npm.new
-if ARGV.length == 2
-  argument_number = 0
-  install = false
-  package_name = ''
-  package_version = ''
-  ARGV.each do |argument|
-    argument_number = argument_number + 1
-    case argument_number
-    when 1
-      install = true if argument == 'install'
-    when 2
-      package_name = argument
-      if install
-        if argument.include? '@'
-          npm.install_particular_package(argument.split('@').first,
-            argument.split('@').last)
-        else
-          npm.install_latest_package(argument)
-        end
-      end
-    end
-  end
-else
-  puts "Wrong number of arguments. Expected 2."
 end
