@@ -2,9 +2,22 @@ require 'open-uri'
 require 'json'
 
 class PackageInstaller
+  attr_accessor :install_packages_globally
+
   def initialize
+    @install_packages_globally = false
     @installed_packages = []
     @discovered_dependencies = []
+  end
+
+  def begin_installation(package_string)
+    if package_string.include? '@'
+      self.install_particular_package(
+        package_string.split('@').first, package_string.split('@').last
+      )
+    else
+      self.install_latest_package(package_string)
+    end
   end
 
   def tidy_version_number(version)
@@ -111,8 +124,21 @@ class PackageInstaller
   end
 
   def install_package(name, version)
+    if @install_packages_globally
+      self.install_package_globally(name, version)
+    else
+      self.install_package_locally(name, version)
+    end
+    @installed_packages << [name, version]
+  end
+
+  def install_package_globally(name, version)
     puts "Installing #{name} #{version} globally..."
     `npm install -g #{name}@#{version}`
-    @installed_packages << [name, version]
+  end
+
+  def install_package_locally(name, version)
+    puts "Installing #{name} #{version} locally..."
+    `npm install #{name}@#{version}`
   end
 end

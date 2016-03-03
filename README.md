@@ -6,11 +6,22 @@ Install Node.js package dependencies one at a time via Ruby.
 Examples
 --------
 
+Install the latest version of a package to the local `node_modules` directory:
+
 `ruby npm_install.rb ember-cli`
+
+Install a particular version of a package to the local `node_modules` directory:
 
 `ruby npm_install.rb ember-cli@2.4.1`
 
-The specified npm package and its dependencies will be installed globally.
+Install the latest version of a package to the global `node_modules` directory:
+
+`ruby npm_install.rb -g ember-cli`
+
+Install a particular version of a package to the global `node_modules`
+directory:
+
+`ruby npm_install.rb -g ember-cli@2.4.1`
 
 Why?
 ----

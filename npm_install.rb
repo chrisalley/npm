@@ -1,14 +1,19 @@
 require_relative 'lib/package_installer'
 
 package_installer = PackageInstaller.new
-if ARGV.length == 1
-  if ARGV[0].include? '@'
-    package_installer.install_particular_package(
-      ARGV[0].split('@').first, ARGV[0].split('@').last
-    )
+case ARGV.length
+when 1
+  package_installer.begin_installation(ARGV[0])
+when 2
+  if ARGV[0] == '-g'
+    package_installer.install_packages_globally = true
+    package_installer.begin_installation(ARGV[1])
+  elsif ARGV[1] == '-g'
+    package_installer.install_packages_globally = true
+    package_installer.begin_installation(ARGV[0])
   else
-    package_installer.install_latest_package(ARGV[0])
+    puts "One or more of your arguments is not supported."
   end
 else
-  puts "Wrong number of arguments. Expected 1."
+  puts "Wrong number of arguments. Expected 1 or 2."
 end
