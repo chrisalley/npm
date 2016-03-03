@@ -6,6 +6,11 @@ Install Node.js package dependencies one at a time via Ruby.
 Examples
 --------
 
+Install the dependencies defined in `package.json` to the local `node_modules`
+directory:
+
+`ruby npm_install.rb`
+
 Install the latest version of a package to the local `node_modules` directory:
 
 `ruby npm_install.rb ember-cli`

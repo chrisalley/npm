@@ -11,12 +11,37 @@ class PackageInstaller
   end
 
   def begin_installation(package_string)
-    if package_string.include? '@'
+    if package_string === ''
+      self.install_from_package_dot_json
+    elsif package_string.include? '@'
       self.install_particular_package(
         package_string.split('@').first, package_string.split('@').last
       )
     else
       self.install_latest_package(package_string)
+    end
+  end
+
+  def install_from_package_dot_json
+    puts "Getting metadata from package.json..."
+    json_string = ''
+    begin
+      File.open("package.json") do |f|
+        f.each_line do |line|
+          json_string << line
+        end
+      end
+    rescue
+      puts "Could not get metadata from package.json."
+    end
+    unless json_string == ''
+      json = JSON(json_string)
+      if json["dependencies"]
+        puts "Installing dependencies specified in package.json..."
+        self.install_dependencies(json["dependencies"])
+      else
+        puts "Package.json does not include any dependencies."
+      end
     end
   end
 
@@ -89,9 +114,7 @@ class PackageInstaller
     false
   end
 
-  def install_dependencies_then_package(name, version, dependencies)
-    version = tidy_version_number(version)
-    puts "Installing dependencies for #{name} #{version}..."
+  def install_dependencies(dependencies)
     dependencies.each do |dep_name, dep_version|
       dep_version = tidy_version_number(dep_version)
       unless self.dependency_already_discovered?(dep_name, dep_version)
@@ -120,6 +143,12 @@ class PackageInstaller
         end
       end
     end
+  end
+
+  def install_dependencies_then_package(name, version, dependencies)
+    version = tidy_version_number(version)
+    puts "Installing dependencies for #{name} #{version}..."
+    self.install_dependencies(dependencies)
     self.install_package(name, version)
   end
 

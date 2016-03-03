@@ -2,6 +2,8 @@ require_relative 'lib/package_installer'
 
 package_installer = PackageInstaller.new
 case ARGV.length
+when 0
+  package_installer.begin_installation('')
 when 1
   package_installer.begin_installation(ARGV[0])
 when 2
@@ -15,5 +17,5 @@ when 2
     puts "One or more of your arguments is not supported."
   end
 else
-  puts "Wrong number of arguments. Expected 1 or 2."
+  puts "Wrong number of arguments. Maximum of 2."
 end
