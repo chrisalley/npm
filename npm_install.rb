@@ -3,9 +3,9 @@ require_relative 'lib/package_installer'
 package_installer = PackageInstaller.new
 case ARGV.length
 when 0
-  package_installer.begin_installation('')
+  package_installer.request_install_directory('')
 when 1
-  package_installer.begin_installation(ARGV[0])
+  package_installer.request_install_directory(ARGV[0])
 when 2
   if ARGV[0] == '-g'
     package_installer.install_packages_globally = true

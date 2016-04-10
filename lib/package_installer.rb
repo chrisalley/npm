@@ -10,6 +10,23 @@ class PackageInstaller
     @discovered_dependencies = []
   end
 
+  def request_install_directory(package_string)
+    puts "Please specify the path of a directory containing package.json:"
+    directory = STDIN.gets.strip
+    if directory[0] == '~'
+      home_path = Dir.home
+      directory[0] = ''
+      directory = home_path + directory
+    end
+    begin
+      puts "Changing into #{directory}"
+      Dir.chdir directory
+      self.begin_installation(package_string)
+    rescue
+      puts "Could not change to directory #{directory}"
+    end
+  end
+
   def begin_installation(package_string)
     if package_string === ''
       self.install_from_package_dot_json
@@ -23,7 +40,7 @@ class PackageInstaller
   end
 
   def install_from_package_dot_json
-    puts "Getting metadata from package.json..."
+    puts "Attempting to get metadata from package.json..."
     json_string = ''
     begin
       File.open("package.json") do |f|
@@ -32,7 +49,7 @@ class PackageInstaller
         end
       end
     rescue
-      puts "Could not get metadata from package.json."
+      puts "Could not get metadata from package.json. Does it exist?"
     end
     unless json_string == ''
       json = JSON(json_string)
@@ -51,7 +68,7 @@ class PackageInstaller
   end
 
   def install_latest_package(name)
-    puts "Getting metadata for the latest version of #{name}..."
+    puts "Attempting to get metadata for the latest version of #{name}..."
     json_string = ''
     begin
       open("http://registry.npmjs.org/#{name}/latest") do |f|
@@ -74,7 +91,7 @@ class PackageInstaller
 
   def install_particular_package(name, version)
     version = tidy_version_number(version)
-    puts "Getting metadata for #{name} #{version}..."
+    puts "Attempting to get metadata for #{name} #{version}..."
     json_string = ''
     begin
       open("http://registry.npmjs.org/#{name}/#{version}") do |f|
@@ -121,7 +138,8 @@ class PackageInstaller
         @discovered_dependencies << [dep_name, dep_version]
 
         unless self.package_already_installed?(dep_name, dep_version)
-          puts "Getting metadata for dependency #{dep_name} #{dep_version}..."
+          puts "Attempting to get metadata for dependency #{dep_name} " +
+            "#{dep_version}..."
           json_string = ''
           begin
             open("http://registry.npmjs.org/#{dep_name}/#{dep_version}") do |f|
