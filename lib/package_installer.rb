@@ -181,11 +181,11 @@ class PackageInstaller
 
   def install_package_globally(name, version)
     puts "Installing #{name} #{version} globally..."
-    `npm install -g #{name}@#{version}`
+    `npm install -g #{name}@#{version} --dev`
   end
 
   def install_package_locally(name, version)
     puts "Installing #{name} #{version} locally..."
-    `npm install #{name}@#{version}`
+    `npm install #{name}@#{version} --dev`
   end
 end
