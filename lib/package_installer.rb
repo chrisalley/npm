@@ -21,10 +21,10 @@ class PackageInstaller
     begin
       puts "Changing into #{directory}"
       Dir.chdir directory
-      self.begin_installation(package_string)
     rescue
       puts "Could not change to directory #{directory}"
     end
+    self.begin_installation(package_string)
   end
 
   def begin_installation(package_string)
