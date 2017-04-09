@@ -32,6 +32,12 @@ Examples
 Why?
 ----
 
-On slower connections `npm` will often time out while installing packages that
+On slower connections npm will often time out while installing packages that
 require a large number of dependencies. By installing each dependency
 as a separate operation we reduce the chance of a timeout occurring.
+
+This script was written before the arrival of [Yarn](yarn), an alternative to
+npm with greater network resilience. I recommend using Yarn instead of this
+script.
+
+[yarn]: https://yarnpkg.com/
